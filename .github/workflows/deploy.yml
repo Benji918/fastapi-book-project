@@ -26,12 +26,3 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Stop and remove container
-      run: |
-          docker stop fastapi-app || true
-          docker rm fastapi-app || true
-
-    - name: Deploy application
-      run: |
-        docker build -t fastapi-app .
-        docker run -d -p 8000:8000 fastapi-app
