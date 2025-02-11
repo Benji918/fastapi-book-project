@@ -50,3 +50,10 @@ def test_delete_book():
 
     response = client.get("/books/3")
     assert response.status_code == 404
+
+
+# Custom test
+def test_getting_book_with_invalid_id():
+    response = client.get("/books/345")
+    assert response.status_code == 404
+    data = response.json()
