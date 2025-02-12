@@ -70,8 +70,4 @@ async def get_book_by_id(book_id:int) -> Book:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
-@router.get("/test-endpoint")
-async def test_endpoint():
-    return JSONResponse(content='This is for testing sha')
-
 
