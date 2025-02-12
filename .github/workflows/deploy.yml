@@ -1,4 +1,4 @@
-name: Deploy to a Cloud VM
+name: Deploy to a Cloud
 
 on:
   push:
@@ -37,4 +37,13 @@ jobs:
       run: |
         docker build -t ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/fastapi-app:latest .
         docker push ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/fastapi-app:latest
+        
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: "hngfastapi"
+        slot-name: "production"
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        images: "hngfastapi.azurecr.io/fastapi-app:latest"
+
 
