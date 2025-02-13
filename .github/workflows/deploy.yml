@@ -16,6 +16,10 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Create and set up project directory
+            sudo mkdir -p /home/${{ secrets.SSH_USERNAME }}
+            sudo chown ${{ secrets.SSH_USERNAME }}:${{ secrets.SSH_USERNAME }} /home/${{ secrets.SSH_USERNAME }}
+            
             # Update package index and install dependencies
             sudo apt-get update -y
             sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
@@ -28,20 +32,28 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-            # Add the SSH user to the Docker group
+            # Configure Docker permissions
             sudo usermod -aG docker ${{ secrets.SSH_USERNAME }}
+            sudo systemctl restart docker
+            newgrp docker
 
             # Install Docker Compose
             sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
-            # Verify installations
-            docker --version
-            docker-compose --version
-
-            # Navigate to the project directory and deploy
-            cd /home/ubuntu/
-            git clone https://github.com/Benji918/fastapi-book-project.git
+            # Handle repository deployment
+            cd /home/${{ secrets.SSH_USERNAME }}
+            if [ ! -d "fastapi-book-project" ]; then
+                git clone https://github.com/Benji918/fastapi-book-project.git
+            fi
             cd fastapi-book-project/
-            git pull
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Ensure Docker Compose files are executable
+            sudo chown -R ${{ secrets.SSH_USERNAME }}:${{ secrets.SSH_USERNAME }} .
+            sudo chmod +x docker-compose.yml
+
+            # Deploy with Docker Compose
+            docker-compose down
             docker-compose up -d --build
