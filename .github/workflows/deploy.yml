@@ -1,5 +1,4 @@
-name: cd pipline
-
+name: cd pipeline
 on:
   push:
     branches: [main]
@@ -9,31 +8,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Log in to Azure Container Registry
-      uses: azure/docker-login@v1
-      with:
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
           login-server: ${{ secrets.AZURE_ACR_LOGIN_SERVER }}
           username: ${{ secrets.AZURE_ACR_USERNAME }}
           password: ${{ secrets.AZURE_ACR_PASSWORD }}
 
-    - name: Build and Push Docker Image to ACR
-      run: |
-        IMAGE_TAG=${GITHUB_SHA}
-        docker build --no-cache -t ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/fastapi-app:${IMAGE_TAG} .
-        docker push ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/fastapi-app:${IMAGE_TAG}
-        
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: "hngfastapi"
-        slot-name: "production"
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        images: "hngfastapi.azurecr.io/fastapi-app:${{ github.sha }}"
+      - name: Build and Push FastAPI Image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          docker build --no-cache -t ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/fastapi-app:${IMAGE_TAG} .
+          docker push ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/fastapi-app:${IMAGE_TAG}
 
+      - name: Build and Push Nginx Image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          docker build --no-cache -f Dockerfile.nginx -t ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/nginx-proxy:${IMAGE_TAG} .
+          docker push ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/nginx-proxy:${IMAGE_TAG}
 
+      - name: Generate docker-compose.yml
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          sed -e 's|{{ACR_LOGIN_SERVER}}|'"${{ secrets.AZURE_ACR_LOGIN_SERVER }}"'|g' \
+              -e 's|{{IMAGE_TAG}}|'"$IMAGE_TAG"'|g' docker-compose.template.yml > docker-compose.yml
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "hngfastapi"
+          slot-name: "production"
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          configuration-file: 'docker-compose.yml'
