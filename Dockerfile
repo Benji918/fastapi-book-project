@@ -1,5 +1,8 @@
 FROM python:3.12-alpine
 
+# Install nginx
+RUN apk add --no-cache nginx
+
 
 WORKDIR .
 
@@ -12,7 +15,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Configure nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 8000
 
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+# Start Nginx and Uvicorn
+CMD ["sh", "-c", "nginx && uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers"]
