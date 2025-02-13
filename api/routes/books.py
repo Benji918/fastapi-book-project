@@ -70,7 +70,5 @@ async def get_book_by_id(book_id:int) -> Book:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
-@router.get('/testing-nginx')
-async def testing_nginx():
-    return JSONResponse(content='New endpoint to test nginx')
+
 
