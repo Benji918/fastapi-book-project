@@ -1,25 +1,19 @@
-FROM python:3.12-alpine
+# Use an official lightweight Python image
+FROM python:3.9-slim
 
-# Install nginx
-RUN apk add --no-cache nginx
-
-
-WORKDIR .
-
-
-COPY requirements.txt .
+# Set work directory
+WORKDIR /app
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-
+# Copy project files
 COPY . .
 
-# Copy the main nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
+# Expose the port FastAPI runs on
 EXPOSE 8000
 
-
-# Start Nginx and Uvicorn
-CMD ["sh", "-c", "nginx && uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers"]
+# Run the FastAPI application using Uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
