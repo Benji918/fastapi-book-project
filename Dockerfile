@@ -15,8 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Configure nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy the main nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 8000
 
