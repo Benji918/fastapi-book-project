@@ -36,13 +36,15 @@ jobs:
       - name: Generate docker-compose.yml
         run: |
           IMAGE_TAG=${GITHUB_SHA}
-          sed -e 's|{{ACR_LOGIN_SERVER}}|'"${{ secrets.AZURE_ACR_LOGIN_SERVER }}"'|g' \
+          sed -e 's|{{secrets.ACR_LOGIN_SERVER}}|'"${{ secrets.AZURE_ACR_LOGIN_SERVER }}"'|g' \
               -e 's|{{IMAGE_TAG}}|'"$IMAGE_TAG"'|g' docker-compose.template.yml > docker-compose.yml
 
-      - name: Deploy to Azure Web App
+      - name: Update Azure Web App to use Latest Image (Optional)
         uses: azure/webapps-deploy@v2
         with:
           app-name: "hngfastapi"
           slot-name: "production"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          configuration-file: 'docker-compose.yml'
+          images: |
+            ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/fastapi-app:${{ github.sha }}
+            ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/nginx-proxy:${{ github.sha }}
