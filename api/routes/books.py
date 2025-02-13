@@ -70,7 +70,7 @@ async def get_book_by_id(book_id:int) -> Book:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
-@router.get('test')
+@router.get('/test')
 async def test():
     return JSONResponse(content='lol')
 
