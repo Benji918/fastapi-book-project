@@ -15,5 +15,4 @@ class Settings(BaseSettings):
     TICK_URL: str = os.getenv('TICK_URL')
     SLACK_WEBHOOK_URL: str = os.getenv('SLACK_WEBHOOK_URL')
 
-
 settings = Settings()

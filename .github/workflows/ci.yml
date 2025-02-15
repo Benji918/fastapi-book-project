@@ -24,6 +24,7 @@ jobs:
       if: success()
       run: |
         curl -X POST \
+          {{ secrets.TELEX_WEBHOOK }} \
           -H "accept: application/json" \
           -H "Content-Type: application/json" \
           -d '{
@@ -31,12 +32,12 @@ jobs:
             "message": "✅ Test passed for PR ${{ github.event.pull_request.number }}",
             "status": "success",
             "username": "Github Actions"
-          }' ${{secrets.SLACK_WEBHOOK_URL}}
-
+          }'
     - name: 'Notify Telex of Test Failure'
       if: failure()
       run: |
         curl -X POST \
+          {{ secrets.TELEX_WEBHOOK }} \
           -H "accept: application/json" \
           -H "Content-Type: application/json" \
           -d '{
@@ -44,4 +45,4 @@ jobs:
             "message": "❌ Test failed for PR ${{ github.event.pull_request.number }}",
             "status": "failure",
             "username": "Github Actions"
-          }' ${{secrets.SLACK_WEBHOOK_URL}}
+          }'
