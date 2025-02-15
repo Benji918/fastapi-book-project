@@ -19,3 +19,30 @@ jobs:
         pip install -r requirements.txt
     - name: Run tests
       run: pytest
+
+    - name: 'Notify Telex of Test Success'
+      if: success()
+      run: |
+        curl -X POST \
+          ${{ secrets.TELEX_WEBHOOK }} \
+          -H "accept: application/json" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "event_name": "ci-pipline",
+            "message": "✅ Test passed for PR ${{ github.event.pull_request.number }}",
+            "status": "success",
+            "username": "Github Actions"
+          }'
+    - name: 'Notify Telex of Test Failure'
+      if: failure()
+      run: |
+        curl -X POST \
+          "https://ping.telex.im/v1/webhooks/019509c2-bfe1-758f-8535-6f9accdeb20a" \
+          -H "accept: application/json" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "event_name": "ci-pipline",
+            "message": "❌ Test failed for PR ${{ github.event.pull_request.number }}",
+            "status": "failure",
+            "username": "Github Actions"
+          }'
